@@ -78,6 +78,15 @@ async def query_documents(request: QueryRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.delete("/api/session/{session_id}")
+async def delete_session(session_id: str):
+    """Delete a conversation session and its history (called when starting a new chat)"""
+    try:
+        rag_system.session_manager.delete_session(session_id)
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/courses", response_model=CourseStats)
 async def get_course_stats():
     """Get course analytics and statistics"""
