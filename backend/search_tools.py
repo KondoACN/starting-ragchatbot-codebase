@@ -117,6 +117,60 @@ class CourseSearchTool(Tool):
         
         return "\n\n".join(formatted)
 
+class CourseOutlineTool(Tool):
+    """Tool for retrieving a course's outline: title, link, and full lesson list"""
+
+    def __init__(self, vector_store: VectorStore):
+        self.store = vector_store
+        self.last_sources = []  # Track sources from last outline lookup
+
+    def get_tool_definition(self) -> Dict[str, Any]:
+        """Return Anthropic tool definition for this tool"""
+        return {
+            "name": "get_course_outline",
+            "description": "Get a course's outline: title, course link, and complete list of lessons (number and title). Use for questions about course structure, syllabus, or what lessons a course contains.",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "course_name": {
+                        "type": "string",
+                        "description": "Course title (partial matches work, e.g. 'MCP', 'Introduction')"
+                    }
+                },
+                "required": ["course_name"]
+            }
+        }
+
+    def execute(self, course_name: str) -> str:
+        """
+        Execute the outline tool with given parameters.
+
+        Args:
+            course_name: Course title to look up (fuzzy match)
+
+        Returns:
+            Formatted course outline or error message
+        """
+        resolved_title = self.store._resolve_course_name(course_name)
+        if not resolved_title:
+            return f"No course found matching '{course_name}'."
+
+        courses = self.store.get_all_courses_metadata()
+        course = next((c for c in courses if c.get('title') == resolved_title), None)
+        if not course:
+            return f"No course found matching '{course_name}'."
+
+        course_link = course.get('course_link') or "No link available"
+        lessons = sorted(course.get('lessons', []), key=lambda l: l.get('lesson_number', 0))
+
+        lines = [f"Course Title: {course['title']}", f"Course Link: {course_link}", "Lessons:"]
+        for lesson in lessons:
+            lines.append(f"Lesson {lesson.get('lesson_number')}: {lesson.get('lesson_title')}")
+
+        self.last_sources = [{"text": course['title'], "link": course.get('course_link')}]
+        return "\n".join(lines)
+
+
 class ToolManager:
     """Manages available tools for the AI"""
     
