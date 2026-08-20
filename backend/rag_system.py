@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Any
 import os
 from document_processor import DocumentProcessor
 from vector_store import VectorStore
@@ -99,7 +99,7 @@ class RAGSystem:
         
         return total_courses, total_chunks
     
-    def query(self, query: str, session_id: Optional[str] = None) -> Tuple[str, List[str]]:
+    def query(self, query: str, session_id: Optional[str] = None) -> Tuple[str, List[Dict[str, Any]]]:
         """
         Process a user query using the RAG system with tool-based search.
         

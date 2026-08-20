@@ -34,9 +34,13 @@ Provide only the direct answer to what was asked.
         self.model = model
         
         # Pre-build base API parameters
+        # Extended thinking is disabled: left implicit, it occasionally makes the
+        # model end its turn with an empty text block after a thinking block,
+        # producing a blank answer even though sources were found.
         self.base_params = {
             "model": self.model,
-            "max_tokens": 800
+            "max_tokens": 800,
+            "thinking": {"type": "disabled"}
         }
     
     def generate_response(self, query: str,
