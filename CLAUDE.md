@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-This project uses `uv` for Python dependency management (Python 3.13 required, no separate test/lint tooling is configured).
+This project uses `uv` for Python dependency management (Python 3.13 required).
 
 **Always use `uv` to run the server and any Python commands, and to manage all dependencies (`uv add`/`uv remove`/`uv sync`) — never call `pip` or `python` directly, and never edit `pyproject.toml`/`uv.lock` by hand.**
 
@@ -18,6 +18,18 @@ uv sync
 # Equivalent manual start
 cd backend && uv run uvicorn app:app --reload --port 8000
 ```
+
+### Code quality
+
+Formatting (`black`, `isort`) and linting (`ruff`) for the Python code in `backend/` and `main.py` are dev dependencies, driven by scripts in `scripts/`:
+
+```bash
+./scripts/format.sh   # auto-fix import order and style
+./scripts/lint.sh     # ruff lint, no changes made
+./scripts/check.sh    # non-mutating: format + lint verification, for CI/pre-commit
+```
+
+Config for all three tools lives in `pyproject.toml` under `[tool.black]`, `[tool.isort]`, and `[tool.ruff]`.
 
 Requires a `.env` file in the repo root with `ANTHROPIC_API_KEY=...` (see `.env.example`).
 

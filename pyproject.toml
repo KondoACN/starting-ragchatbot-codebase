@@ -16,8 +16,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "black>=26.5.1",
+    "isort>=8.0.1",
     "pytest>=9.1.1",
     "pytest-mock>=3.15.1",
+    "ruff>=0.16.3",
 ]
 
 [tool.pytest.ini_options]
@@ -25,3 +28,23 @@ minversion = "8.0"
 testpaths = ["backend/tests"]
 pythonpath = ["backend"]
 addopts = "-ra --tb=short"
+
+[tool.black]
+line-length = 88
+target-version = ["py313"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# warnings.filterwarnings() must run before the imports it silences
+"backend/app.py" = ["E402"]

@@ -5,6 +5,7 @@ VectorStore is replaced with a Mock, so these run instantly and never touch
 the real ChromaDB store (which the running dev server may already hold
 open -- see test_rag_system.py's module docstring for why that matters).
 """
+
 from unittest.mock import MagicMock
 
 from search_tools import CourseSearchTool, ToolManager
@@ -67,7 +68,9 @@ class TestCourseSearchToolExecute:
 
     def test_search_error_is_returned_verbatim_and_no_sources_recorded(self):
         store = make_store()
-        store.search.return_value = SearchResults.empty("No course found matching 'Nope'")
+        store.search.return_value = SearchResults.empty(
+            "No course found matching 'Nope'"
+        )
 
         tool = CourseSearchTool(store)
         result = tool.execute(query="q", course_name="Nope")
@@ -77,7 +80,9 @@ class TestCourseSearchToolExecute:
 
     def test_empty_results_message_includes_filters(self):
         store = make_store()
-        store.search.return_value = SearchResults(documents=[], metadata=[], distances=[])
+        store.search.return_value = SearchResults(
+            documents=[], metadata=[], distances=[]
+        )
 
         tool = CourseSearchTool(store)
         result = tool.execute(query="q", course_name="MCP", lesson_number=3)
@@ -86,7 +91,9 @@ class TestCourseSearchToolExecute:
 
     def test_empty_results_message_without_filters(self):
         store = make_store()
-        store.search.return_value = SearchResults(documents=[], metadata=[], distances=[])
+        store.search.return_value = SearchResults(
+            documents=[], metadata=[], distances=[]
+        )
 
         tool = CourseSearchTool(store)
         result = tool.execute(query="q")
@@ -95,7 +102,9 @@ class TestCourseSearchToolExecute:
 
     def test_execute_passes_query_course_name_and_lesson_number_to_store(self):
         store = make_store()
-        store.search.return_value = SearchResults(documents=[], metadata=[], distances=[])
+        store.search.return_value = SearchResults(
+            documents=[], metadata=[], distances=[]
+        )
 
         tool = CourseSearchTool(store)
         tool.execute(query="what is mcp", course_name="MCP", lesson_number=2)
@@ -111,14 +120,18 @@ class TestCourseSearchToolExecute:
         assert definition["name"] == "search_course_content"
         assert definition["input_schema"]["required"] == ["query"]
         assert set(definition["input_schema"]["properties"]) == {
-            "query", "course_name", "lesson_number"
+            "query",
+            "course_name",
+            "lesson_number",
         }
 
 
 class TestToolManagerWithSearchTool:
     def test_execute_tool_dispatches_to_registered_search_tool(self):
         store = make_store()
-        store.search.return_value = SearchResults(documents=[], metadata=[], distances=[])
+        store.search.return_value = SearchResults(
+            documents=[], metadata=[], distances=[]
+        )
         tool = CourseSearchTool(store)
 
         manager = ToolManager()
