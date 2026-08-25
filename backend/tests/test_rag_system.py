@@ -17,16 +17,16 @@ isolation is required, not just tidy. Only the Anthropic call is mocked, so
 this exercises the real CourseSearchTool -> VectorStore -> ChromaDB path
 used for real content questions.
 """
+
 import shutil
 import tempfile
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-
 import rag_system as rag_system_module
+from models import Course, CourseChunk, Lesson
 from rag_system import RAGSystem
-from models import Course, Lesson, CourseChunk
 
 
 class FakeConfig:
@@ -54,15 +54,22 @@ def mocked_rag_system(monkeypatch):
     monkeypatch.setattr(rag_system_module, "ToolManager", MagicMock())
 
     config = SimpleNamespace(
-        CHUNK_SIZE=800, CHUNK_OVERLAP=100, CHROMA_PATH="unused",
-        EMBEDDING_MODEL="unused", MAX_RESULTS=5,
-        ANTHROPIC_API_KEY="test", ANTHROPIC_MODEL="test", MAX_HISTORY=2,
+        CHUNK_SIZE=800,
+        CHUNK_OVERLAP=100,
+        CHROMA_PATH="unused",
+        EMBEDDING_MODEL="unused",
+        MAX_RESULTS=5,
+        ANTHROPIC_API_KEY="test",
+        ANTHROPIC_MODEL="test",
+        MAX_HISTORY=2,
     )
     return RAGSystem(config=config)
 
 
 class TestQueryOrchestration:
-    def test_content_question_is_sent_to_ai_generator_with_tools(self, mocked_rag_system):
+    def test_content_question_is_sent_to_ai_generator_with_tools(
+        self, mocked_rag_system
+    ):
         rs = mocked_rag_system
         rs.ai_generator.generate_response.return_value = (
             "MCP servers expose tools, resources, and prompts."
@@ -91,7 +98,9 @@ class TestQueryOrchestration:
         rs.tool_manager.get_last_sources.assert_called_once()
         rs.tool_manager.reset_sources.assert_called_once()
 
-    def test_session_history_is_updated_with_query_and_response(self, mocked_rag_system):
+    def test_session_history_is_updated_with_query_and_response(
+        self, mocked_rag_system
+    ):
         rs = mocked_rag_system
         rs.ai_generator.generate_response.return_value = "the answer"
         rs.tool_manager.get_last_sources.return_value = []
@@ -133,7 +142,13 @@ def real_vector_store_rag_system():
         title="Test MCP Course",
         course_link="https://example.com/course",
         instructor="Tester",
-        lessons=[Lesson(lesson_number=1, title="Intro to MCP", lesson_link="https://example.com/l1")],
+        lessons=[
+            Lesson(
+                lesson_number=1,
+                title="Intro to MCP",
+                lesson_link="https://example.com/l1",
+            )
+        ],
     )
     chunks = [
         CourseChunk(
@@ -159,7 +174,9 @@ class TestContentQueryAgainstRealVectorStore:
         assert "Test MCP Course" in result
         assert "tools, resources, and prompts" in result
 
-    def test_full_query_pipeline_with_mocked_anthropic_only(self, real_vector_store_rag_system):
+    def test_full_query_pipeline_with_mocked_anthropic_only(
+        self, real_vector_store_rag_system
+    ):
         rs = real_vector_store_rag_system
         rs.ai_generator = MagicMock()
         rs.ai_generator.generate_response.side_effect = lambda **kwargs: (

@@ -5,11 +5,11 @@ The real anthropic.Anthropic client is replaced with a Mock so no network
 call is made; these tests only check that AIGenerator drives the
 Anthropic tool-use protocol (and the ToolManager it's handed) correctly.
 """
+
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-
 from ai_generator import AIGenerator
 
 
@@ -50,7 +50,9 @@ class TestDirectResponseNoToolUse:
         assert generator.client.messages.create.call_count == 1
 
     def test_tools_and_tool_choice_included_when_tools_provided(self, generator):
-        generator.client.messages.create.return_value = make_response("end_turn", [text_block("ok")])
+        generator.client.messages.create.return_value = make_response(
+            "end_turn", [text_block("ok")]
+        )
         tools = [{"name": "search_course_content"}]
 
         generator.generate_response("hi", tools=tools, tool_manager=MagicMock())
@@ -60,7 +62,9 @@ class TestDirectResponseNoToolUse:
         assert kwargs["tool_choice"] == {"type": "auto"}
 
     def test_no_tools_key_when_tools_not_provided(self, generator):
-        generator.client.messages.create.return_value = make_response("end_turn", [text_block("ok")])
+        generator.client.messages.create.return_value = make_response(
+            "end_turn", [text_block("ok")]
+        )
 
         generator.generate_response("hi")
 
@@ -73,13 +77,21 @@ class TestToolUseFlow:
     def test_calls_search_tool_and_returns_final_answer(self, generator):
         first = make_response(
             "tool_use",
-            [tool_use_block("search_course_content", {"query": "MCP servers"}, id_="tu_1")],
+            [
+                tool_use_block(
+                    "search_course_content", {"query": "MCP servers"}, id_="tu_1"
+                )
+            ],
         )
-        second = make_response("end_turn", [text_block("Here is how to build an MCP server...")])
+        second = make_response(
+            "end_turn", [text_block("Here is how to build an MCP server...")]
+        )
         generator.client.messages.create.side_effect = [first, second]
 
         tool_manager = MagicMock()
-        tool_manager.execute_tool.return_value = "[MCP Course - Lesson 4]\nHow to build a server"
+        tool_manager.execute_tool.return_value = (
+            "[MCP Course - Lesson 4]\nHow to build a server"
+        )
 
         result = generator.generate_response(
             "How do I build an MCP server?",
@@ -133,9 +145,13 @@ class TestToolUseFlow:
         assert "tools" not in second_call_kwargs
 
     def test_conversation_history_included_in_system_prompt(self, generator):
-        generator.client.messages.create.return_value = make_response("end_turn", [text_block("ok")])
+        generator.client.messages.create.return_value = make_response(
+            "end_turn", [text_block("ok")]
+        )
 
-        generator.generate_response("hi", conversation_history="User: hi\nAssistant: hello")
+        generator.generate_response(
+            "hi", conversation_history="User: hi\nAssistant: hello"
+        )
 
         _, kwargs = generator.client.messages.create.call_args
         assert "Previous conversation" in kwargs["system"]
